@@ -105,20 +105,16 @@ int CliParser::parse(int argc, char* argv[]) {
     const std::string Command = argv[CommandIndex];
 
     if (Command == "build") {
-        std::cout << "Executing command: largo build\n";
         if (!buildProject()) {
             return 1;
         }
-        std::cout << "Accept\n";
         return 0;
     }
 
     if (Command == "run") {
-        std::cout << "Executing command: largo run\n";
         if (!runProject()) {
             return 1;
         }
-        std::cout << "Accept\n";
         return 0;
     }
 
@@ -134,12 +130,9 @@ int CliParser::parse(int argc, char* argv[]) {
             std::cout << "Error: 'largo new' requires a valid <string> value.\n";
             return 1;
         }
-
-        std::cout << "Executing command: largo new " << StringValue << "\n";
         if (!FileIo.createProjectDirectory(StringValue)) {
             return 1;
         }
-        std::cout << "Accept\n";
         return 0;
     }
 
