@@ -4,7 +4,8 @@
 #include <iostream>
 #include <memory>
 
-bool Io::readTomlValue(const std::filesystem::path& TomlPath, const std::string& Key, std::string& Value) {
+namespace Io {
+bool readTomlValue(const std::filesystem::path& TomlPath, const std::string& Key, std::string& Value) {
     std::unique_ptr<std::ifstream> File = std::make_unique<std::ifstream>(TomlPath);
     if (!File->is_open()) {
         return false;
@@ -48,7 +49,7 @@ bool Io::readTomlValue(const std::filesystem::path& TomlPath, const std::string&
     return false;
 }
 
-bool Io::createProjectDirectory(const std::string& ProjectName) {
+bool createProjectDirectory(const std::string& ProjectName) {
     namespace fs = std::filesystem;
 
     const fs::path ProjectPath = fs::current_path() / ProjectName;
@@ -107,7 +108,7 @@ bool Io::createProjectDirectory(const std::string& ProjectName) {
     return true;
 }
 
-bool Io::createDirectories(const std::filesystem::path& Path) {
+bool createDirectories(const std::filesystem::path& Path) {
     namespace fs = std::filesystem;
 
     std::error_code Error;
@@ -115,7 +116,7 @@ bool Io::createDirectories(const std::filesystem::path& Path) {
     return !Error;
 }
 
-bool Io::writeCMakeLists(const std::filesystem::path& CmakePath, const std::string& ProjectName) {
+bool writeCMakeLists(const std::filesystem::path& CmakePath, const std::string& ProjectName) {
     std::unique_ptr<std::ofstream> CmakeFile = std::make_unique<std::ofstream>(CmakePath);
     if (!CmakeFile->is_open()) {
         std::cout << "Error: failed to create CMakeLists.txt.\n";
@@ -139,12 +140,21 @@ bool Io::writeCMakeLists(const std::filesystem::path& CmakePath, const std::stri
     return true;
 }
 
-std::filesystem::path Io::findExecutable(const std::filesystem::path& SearchPath, const std::string& ProjectName) {
+std::filesystem::path findExecutable(const std::filesystem::path& SearchPath, const std::string& ProjectName) {
     namespace fs = std::filesystem;
 
     fs::path ExecutablePath;
     for (fs::recursive_directory_iterator Iterator(SearchPath, fs::directory_options::skip_permission_denied), End; Iterator != End; ++Iterator) {
+        if (Iterator->is_directory() && Iterator->path().filename() == "CMakeFiles") {
+            Iterator.disable_recursion_pending();
+            continue;
+        }
+
         const fs::path Candidate = Iterator->path();
+        if (!fs::is_regular_file(Candidate)) {
+            continue;
+        }
+
         const std::string FileName = Candidate.filename().string();
         if (FileName == ProjectName + ".exe" || FileName == ProjectName) {
             ExecutablePath = Candidate;
@@ -153,4 +163,5 @@ std::filesystem::path Io::findExecutable(const std::filesystem::path& SearchPath
     }
 
     return ExecutablePath;
+}
 }
